@@ -44,7 +44,13 @@ RUN pacman -Syu --noconfirm && \
 # Copy packages from AUR Builder
 RUN mkdir /tmp/built_pkgs
 COPY --from=aur-builder /built_pkgs/ /tmp/built_pkgs/
-RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm -rf /tmp/built_pkgs
+
+# We need /opt to not be a symlink during package installation
+RUN rm -rf /opt && \
+    ls /tmp/built_pkgs && \
+    pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && \
+    rm -rf /tmp/built_pkgs && \
+    mv /opt /usr && mkdir /opt
 
 # Install fprintd here after CS9311 was installed
 RUN pacman -S --noconfirm fprintd
