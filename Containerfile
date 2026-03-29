@@ -1,5 +1,7 @@
 FROM scratch AS ctx
 
+COPY scripts/ /scripts
+
 FROM ghcr.io/ohaiibuzzle/cachy-bootc:latest AS base
 
 FROM base AS aur-builder
@@ -23,10 +25,10 @@ RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.g
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
-FROM base AS system
+FROM base AS system-image
 
 RUN pacman -Syu --noconfirm && \
-    pacman -S --noconfirm \
+    pacman -S --noconfirm --needed \
     7zip ark amd-ucode base base-devel bash-completion btop btrfs-progs \
     cpio dbus dbus-glib discover distrobox dolphin dosfstools dracut \
     e2fsprogs efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
@@ -34,8 +36,8 @@ RUN pacman -Syu --noconfirm && \
     intel-ucode jq just kate kwalletmanager linux-cachyos \
     linux-cachyos-nvidia-open linux-firmware mangohud man-db mpv nano \
     networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra \
-    nvtop opencl-mesa opencl-nvidia openssh ostree partitionmanager \
-    pipewire pipewire-jack plasma plasma-login-manager \
+    nvtop opencl-mesa opencl-nvidia openssh ostree parallel \
+    partitionmanager pipewire pipewire-jack plasma plasma-login-manager \
     plasma-systemmonitor plymouth plymouth-kcm podman \
     power-profiles-daemon sbctl shadow skopeo starship \
     steam-devices tailscale tlp vulkan-radeon wireplumber \
@@ -70,10 +72,22 @@ RUN pacman -Scc --noconfirm && \
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
-    rm -rf /boot/* /run/* /var/* && \
+    rm -rf /boot/* /run/* /var/cache/* /var/lib/* && \
     printf 'add_dracutmodules+=" plymouth "' | tee "/usr/lib/dracut/dracut.conf.d/40-distro.conf" && \
     dracut --force "$(find /usr/lib/modules -maxdepth 1 -type d | grep -v -E "*.img" | tail -n 1)/initramfs.img"
 
-LABEL containers.bootc 1
+RUN --mount=from=ctx,source=/scripts,target=/scripts,ro \
+    bash /scripts/chunkah_stability.sh
 
+LABEL containers.bootc 1
+    
 RUN bootc container lint
+
+FROM quay.io/jlebon/chunkah AS chunkah
+RUN --mount=from=system-image,src=/,target=/chunkah,ro \
+    --mount=type=bind,target=/run/src,rw \
+        chunkah build --max-layers 128 \
+          --label containers.bootc=1 \
+          > /run/src/out.ociarchive
+
+FROM oci-archive:out.ociarchive
