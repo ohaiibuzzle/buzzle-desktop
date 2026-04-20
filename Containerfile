@@ -32,18 +32,18 @@ FROM base AS system-image
 RUN pacman -Syu --noconfirm && \
     pacman -S --noconfirm --needed \
     7zip ark amd-ucode base base-devel bash-completion btop btrfs-progs \
-    cpio dbus dbus-glib discover distrobox dolphin dosfstools dracut \
+    cpio dbus dbus-glib discover distrobox dmemcg-booster dolphin dosfstools dracut \
     e2fsprogs efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
     flatpak-kcm gamescope-session-cachyos git glib2 gptfdisk \
-    intel-ucode jq just kate kwalletmanager linux-cachyos \
+    ibus intel-ucode jq just kate kwalletmanager linux-cachyos \
     linux-cachyos-nvidia-open linux-firmware mangohud man-db mpv nano \
     networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra \
-    nvtop opencl-mesa opencl-nvidia openssh ostree parallel \
-    partitionmanager pipewire pipewire-jack plasma plasma-login-manager \
+    nvtop opencl-mesa opencl-nvidia openssh ostree parallel\
+    partitionmanager pipewire pipewire-jack plasma plasma-foreground-booster plasma-login-manager \
     plasma-systemmonitor plymouth plymouth-kcm podman \
     power-profiles-daemon sbctl shadow skopeo starship \
-    steam-devices tailscale tlp vulkan-radeon wireplumber \
-    xfsprogs yakuake zram-generator
+    steam-devices systemd tailscale tlp vulkan-radeon wireplumber \
+    xbindkeys xfsprogs yakuake zram-generator
 
 # Copy packages from AUR Builder
 RUN mkdir /tmp/built_pkgs
@@ -85,11 +85,11 @@ LABEL containers.bootc 1
     
 RUN bootc container lint
 
-FROM quay.io/jlebon/chunkah AS chunkah
-RUN --mount=from=system-image,src=/,target=/chunkah,ro \
-    --mount=type=bind,target=/run/src,rw \
-        chunkah build --max-layers 128 \
-          --label containers.bootc=1 \
-          > /run/src/out.ociarchive
+# FROM quay.io/coreos/chunkah AS chunkah
+# RUN --mount=from=system-image,src=/,target=/chunkah,ro \
+#     --mount=type=bind,target=/run/src,rw \
+#         chunkah build --max-layers 128 \
+#           --label containers.bootc=1 \
+#           > /run/src/out.ociarchive
 
-FROM oci-archive:out.ociarchive
+# FROM oci-archive:out.ociarchive
