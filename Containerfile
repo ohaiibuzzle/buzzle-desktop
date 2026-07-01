@@ -62,7 +62,7 @@ RUN pacman -Scc --noconfirm && \
     echo -e "en_US.UTF-8 UTF-8\nen_GB.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
     echo -e '\neval $(starship init bash)' >> /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
-    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp opt.mount && \
+    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
     mkdir -p /usr/lib/bootc/kargs.d/ && \
     echo 'kargs = ["quiet splash zswap.enabled=0"]' > /usr/lib/bootc/kargs.d/00-splash.toml && \
     echo 'Error "UCM support temporary disabled for ${CardLongName}"' >> /usr/share/alsa/ucm2/USB-Audio/Sony/DualSense-PS5.conf
