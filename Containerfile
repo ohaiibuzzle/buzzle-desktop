@@ -15,7 +15,6 @@ WORKDIR /tmp
 
 RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-rebase-git.git package && \
     cd package && \
-    patch -p1 < cs9711-pkgbuild.patch && \
     sudo -u builder makepkg -s --noconfirm && \ 
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
