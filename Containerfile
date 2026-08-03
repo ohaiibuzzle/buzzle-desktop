@@ -69,7 +69,8 @@ RUN pacman -Scc --noconfirm && \
 
 
 # https://github.com/bootc-dev/bootc/issues/1801
-RUN rm -rf /boot/* /run/* /var/cache/* /var/lib/* && \
+RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/var/tmp \
+    rm -rf /boot/* /run/* /var/cache/* /var/lib/* && \
     printf 'add_dracutmodules+=" plymouth "' | tee "/usr/lib/dracut/dracut.conf.d/40-distro.conf" && \
     dracut --force "$(find /usr/lib/modules -maxdepth 1 -type d | grep -v -E "*.img" | tail -n 1)/initramfs.img"
 
