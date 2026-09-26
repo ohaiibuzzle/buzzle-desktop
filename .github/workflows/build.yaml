@@ -56,12 +56,13 @@ jobs:
     
       - name: Compute SOURCE_DATE_EPOCH
         id: epoch
-        run: echo "epoch=$(date -d '${{ github.event.head_commit.timestamp }}' +%s)" >> $GITHUB_OUTPUT
+        run: echo "epoch=$(git log -1 --format=%ct)" >> $GITHUB_OUTPUT
 
       - name: Build Image
         id: build_image
         run: |
           buildah build --skip-unused-stages=false --security-opt=label=disable \
+          -v "$(pwd)":/run/src --build-arg SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH}" \
           -t "${IMAGE_NAME}:${DEFAULT_TAG}" -t "${IMAGE_NAME}:${{ steps.metadata.outputs.date_tag }}" \
           --label containers.bootc=1 --format oci --tls-verify=true -f ./Containerfile .
         env:
