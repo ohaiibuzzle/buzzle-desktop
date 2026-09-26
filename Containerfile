@@ -72,7 +72,9 @@ RUN pacman -Scc --noconfirm && \
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/var/tmp \
     rm -rf /boot/* /run/* /var/cache/* /var/lib/* && \
     printf 'add_dracutmodules+=" plymouth "' | tee "/usr/lib/dracut/dracut.conf.d/40-distro.conf" && \
-    dracut --force "$(find /usr/lib/modules -maxdepth 1 -type d | grep -v -E "*.img" | tail -n 1)/initramfs.img"
+    KVER="$(basename "$(find /usr/lib/modules -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)")" && \
+    depmod -a "$KVER" && \
+    dracut --force --no-hostonly --kver "$KVER" "/usr/lib/modules/$KVER/initramfs.img"
 
 RUN --mount=from=ctx,source=/scripts,target=/scripts,ro \
     bash /scripts/chunkah_stability.sh
