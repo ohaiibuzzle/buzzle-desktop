@@ -65,8 +65,10 @@ RUN pacman -Scc --noconfirm && \
 
 # https://github.com/bootc-dev/bootc/issues/1801
 # /var/lib/pacman is kept for chunkah to read and pruned from the final image there
+# /run/src is skipped because buildah's `-v $(pwd):/run/src` is mounted into every RUN
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/var/tmp \
-    rm -rf /boot/* /run/* /var/cache/* && \
+    rm -rf /boot/* /var/cache/* && \
+    find /run -mindepth 1 -maxdepth 1 ! -name src ! -name .containerenv -exec rm -rf {} + && \
     find /var/lib -mindepth 1 -maxdepth 1 ! -name pacman -exec rm -rf {} + && \
     printf 'add_dracutmodules+=" plymouth "' | tee "/usr/lib/dracut/dracut.conf.d/40-distro.conf" && \
     KVER="$(basename "$(find /usr/lib/modules -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)")" && \
