@@ -85,7 +85,7 @@ FROM quay.io/coreos/chunkah AS chunkah
 ARG SOURCE_DATE_EPOCH
 RUN --mount=from=system-image,src=/,target=/chunkah,ro \
     --mount=type=bind,target=/run/src,rw \
-        chunkah build --max-layers 128 \
+        chunkah build --max-layers 192 \
           --prune /var/lib/pacman/ \
           --label containers.bootc=1 \
           --output oci:/run/src/out
